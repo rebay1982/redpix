@@ -10,6 +10,12 @@ import (
 //	"image/color"
 )
 
+const (
+	WINDOW_TITLE = "GLFW Template"
+	MAX_WINDOW_WIDTH = 1980 
+	MAX_WINDOW_HEIGHT = 1080
+)
+
 // WindowConfig: Structure describing starting parameters for the application's window.
 type WindowConfig struct {
 	
@@ -29,14 +35,25 @@ type WindowConfig struct {
 	VSync bool
 }
 
+func (c *WindowConfig) validate() bool {
 
-// Init: Function to initialize GLFW, OpenGL and setup the window configuration.
-func Init(config WindowConfig) {
+	if !(c.Width > 0 && c.Width <= MAX_WINDOW_WIDTH) {
+		return false
+	}
+
+	if !(c.Height > 0 && c.Height <= MAX_WINDOW_HEIGHT) {
+		return false
+	}
+
+	return true
+}
+
+var (
+	window *glfw.Window
+)
+
+func init() {
 	runtime.LockOSThread()
-
-	//window := initGLFW(config)
-	initGLFW(config)
-	initOpenGL()
 }
 
 func initGLFW(config WindowConfig) *glfw.Window {
@@ -46,7 +63,7 @@ func initGLFW(config WindowConfig) *glfw.Window {
 	}
 
 	// Process configurations
-	if config.Resizable {
+	if (config.Resizable) {
 		glfw.WindowHint(glfw.Resizable, glfw.True)
 	} else {
 		glfw.WindowHint(glfw.Resizable, glfw.False)
@@ -75,4 +92,20 @@ func initOpenGL() {
 
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	log.Println("OpenGL version: ", version)
+}
+
+// Init: Function to initialize GLFW, OpenGL and setup the window configuration.
+func Init(config WindowConfig) {
+	if !config.validate() {
+		log.Panic("redpix: Failed to init, incomplete configuration.")
+	}
+
+	window = initGLFW(config)
+	initOpenGL()
+}
+
+func Run(update func()) {
+	if (window == nil) {
+		log.Panic("redpix: Cannot run, engine not initalized")
+	}
 }
