@@ -11,10 +11,10 @@ type WindowConfig struct {
 	// The window's title bar caption.
 	Title string
 
-	// The window's starting width, in pixels.
+	// The window's starting width, in pixels. Min: 1, Max: 1980
 	Width int
 
-	// The window's starting height, in pixels.
+	// The window's starting height, in pixels. Min: 1, Max: 1080
 	Height int
 
 	// Specifies if the window is resizable or not.
