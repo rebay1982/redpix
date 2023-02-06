@@ -6,8 +6,6 @@ import (
 
 	"log"
 	"runtime"
-//	"image"
-//	"image/color"
 )
 
 var (
