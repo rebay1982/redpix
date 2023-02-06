@@ -96,16 +96,28 @@ func Init(config WindowConfig) {
 	initFramebuffer(texture)
 }
 
-func Run(update, draw func()) {
+func Run(update func(), draw func() []uint8) {
 	if (window == nil) {
 		log.Panic("redpix: Cannot run, engine not initalized")
 	}
 
-	if update != nil {
-		update()
+	if (draw == nil) {
+		log.Panic("redpix: A draw function must be provided.")
 	}
 
-	if draw != nil {
-		draw()
+	w, h := window.GetSize()
+	for !window.ShouldClose() {
+		if update != nil {
+			update()
+		}
+
+		pixels := draw()
+
+		gl.BindTexture(gl.TEXTURE_2D, texture)
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, int32(w), int32(h), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))
+		gl.BlitFramebuffer(0, 0, int32(w), int32(h), 0, 0, int32(w), int32(h), gl.COLOR_BUFFER_BIT, gl.LINEAR)
+
+		glfw.PollEvents()
+		window.SwapBuffers()
 	}
 }
