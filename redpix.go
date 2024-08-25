@@ -11,7 +11,13 @@ import (
 var (
 	window *glfw.Window
 	texture uint32
+	instance *redPixInstance
 )
+
+type redPixInstance struct {
+	draw func() []uint8
+	inputHandler func(InputEvent)
+}
 
 func init() {
 	runtime.LockOSThread()
@@ -83,33 +89,48 @@ func initOpenGL() {
 }
 
 // Init: Function to initialize GLFW, OpenGL and setup the window configuration.
-func Init(config WindowConfig) {
-	if !config.validate() {
-		log.Panic("redpix: Failed to init, incomplete configuration.")
+func Init(config WindowConfig, draw func() []uint8, inputHandler func(InputEvent)) {
+	if instance != nil {
+		log.Println("redpix WARN: redpix engine already initialized, aborting.")
+		return
 	}
 
-	window = initGLFW(config)
-	initOpenGL()
-	texture = initTexture()
-	initFramebuffer(texture)
-}
-
-func Run(update func(), draw func() []uint8) {
-	if (window == nil) {
-		log.Panic("redpix: Cannot run, engine not initalized")
+	if !config.validate() {
+		log.Panic("redpix: Failed to init, incomplete configuration.")
 	}
 
 	if (draw == nil) {
 		log.Panic("redpix: A draw function must be provided.")
 	}
 
+	if (inputHandler == nil) {
+		log.Println("redpix WARN: no input handler function provided. Input will not be handled.")
+	}
+
+	window = initGLFW(config)
+	initOpenGL()
+	texture = initTexture()
+	initFramebuffer(texture)
+
+	instance = &redPixInstance{
+		draw: draw,
+		inputHandler: inputHandler,
+	}
+}
+
+func Run() {
+	if (window == nil) {
+		log.Panic("redpix: Cannot run, engine not initalized")
+	}
+
+	if (instance.inputHandler != nil) {
+		window.SetKeyCallback(inputHandler)
+		log.Println("redpix: Input handler provided, registering handler function.")
+	}
+
 	w, h := window.GetSize()
 	for !window.ShouldClose() {
-		if update != nil {
-			update()
-		}
-
-		pixels := draw()
+		pixels := instance.draw()
 
 		gl.BindTexture(gl.TEXTURE_2D, texture)
 		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, int32(w), int32(h), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))

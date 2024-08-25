@@ -1,6 +1,7 @@
 package main 
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 
@@ -14,7 +15,6 @@ const (
 )
 
 func draw() []uint8 {
-
 	w := WINDOW_WIDTH
 	h := WINDOW_HEIGHT
 
@@ -37,6 +37,31 @@ func draw() []uint8 {
 	return img.Pix
 }
 
+func input(event rp.InputEvent) {
+
+	fmt.Print("Key ")
+	switch event.Key {
+	case rp.IN_PLAYER_FORWARD:
+		fmt.Print("forward ")
+	case rp.IN_PLAYER_BACKWARD:
+		fmt.Print("backward ")
+	case rp.IN_PLAYER_LEFT:
+		fmt.Print("left ")
+	case rp.IN_PLAYER_RIGHT:
+		fmt.Print("right ")
+	}
+
+	fmt.Print("was ")
+	switch event.Action {
+	case rp.IN_ACT_PRESSED:
+		fmt.Println("pressed.")
+	case rp.IN_ACT_RELEASED:
+		fmt.Println("released.")
+	case rp.IN_ACT_REPEATED:
+		fmt.Println("repeated.")
+	}
+}
+
 func main() {
 	config := rp.WindowConfig {
 		Title: WINDOW_TITLE,
@@ -46,6 +71,6 @@ func main() {
 		VSync: true,
 	}
 
-	rp.Init(config)
-	rp.Run(nil, draw)		// Skip update function for now.
+	rp.Init(config, draw, input)
+	rp.Run()
 }
